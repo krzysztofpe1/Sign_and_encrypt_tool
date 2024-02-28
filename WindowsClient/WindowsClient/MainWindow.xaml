@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WindowsClient"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="400">
+        Title="MainWindow" Height="450" Width="400" ResizeMode="NoResize"
+        Loaded="Window_Loaded">
     <Grid>
         <TabControl>
             <TabItem Header="Signature">
@@ -22,14 +23,14 @@
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
                     
-                    <TextBox Grid.Row="1" Grid.Column="0" x:Name="signatureCheckPathTextBox" VerticalAlignment="Center"/>
-                    <TextBox Grid.Row="2" Grid.Column="0" x:Name="signatureSignPathTextBox" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="1" Grid.Column="0" x:Name="signatureCheckPathTextBox" VerticalAlignment="Center" Margin="5"/>
+                    <TextBox Grid.Row="2" Grid.Column="0" x:Name="signatureSignPathTextBox" VerticalAlignment="Center" Margin="5"/>
 
                     <Button Grid.Row="1" Grid.Column="1" Content="..." x:Name="signatureCheckBrowseButton" HorizontalAlignment="Center" VerticalAlignment="Center" Width="18" Click="BrowseButton_Click"/>
                     <Button Grid.Row="2" Grid.Column="1" Content="..." x:Name="signatureSignBrowseButton" HorizontalAlignment="Center" VerticalAlignment="Center" Width="18" Click="BrowseButton_Click"/>
 
-                    <Button Grid.Row="1" Grid.Column="2" Width="50" Content="Check" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                    <Button Grid.Row="2" Grid.Column="2" Width="50" Content="Sign" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                    <Button Grid.Row="1" Grid.Column="2" Width="50" Content="Check" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
+                    <Button Grid.Row="2" Grid.Column="2" Width="50" Content="Sign" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Encryption">
