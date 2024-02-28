@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34330.188
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignAndEncyptTool", "SignAndEncyptTool\SignAndEncyptTool.csproj", "{D04E6066-1D55-4533-BBAB-A8835BE1EA71}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindowsClient", "..\WindowsClient\WindowsClient\WindowsClient.csproj", "{9587BF87-90BB-48A3-BC9B-7853318D97A2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D04E6066-1D55-4533-BBAB-A8835BE1EA71} = {D04E6066-1D55-4533-BBAB-A8835BE1EA71}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D04E6066-1D55-4533-BBAB-A8835BE1EA71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D04E6066-1D55-4533-BBAB-A8835BE1EA71}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D04E6066-1D55-4533-BBAB-A8835BE1EA71}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D04E6066-1D55-4533-BBAB-A8835BE1EA71}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9587BF87-90BB-48A3-BC9B-7853318D97A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9587BF87-90BB-48A3-BC9B-7853318D97A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9587BF87-90BB-48A3-BC9B-7853318D97A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9587BF87-90BB-48A3-BC9B-7853318D97A2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {667DAEC4-9663-47DB-91DD-09B01A673D3E}
+	EndGlobalSection
+EndGlobal
