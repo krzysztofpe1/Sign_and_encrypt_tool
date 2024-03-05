@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WindowsClient"
         mc:Ignorable="d"
-        Title="KeysManagementWindow" Height="450" Width="400" ResizeMode="NoResize">
+        Title="KeysManagementWindow" Height="250" Width="400" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition/>
@@ -13,24 +13,34 @@
         </Grid.RowDefinitions>
         <Grid Grid.Row="0">
             <Grid.RowDefinitions>
-                <RowDefinition Height="10"/>
-                <RowDefinition Height="40"/>
-                <RowDefinition Height="40"/>
+                <RowDefinition Height="25"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="25"/>
+                <RowDefinition Height="auto"/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="4*"/>
-                <ColumnDefinition Width="20"/>
-                <ColumnDefinition/>
-            </Grid.ColumnDefinitions>
-            <TextBox Grid.Row="1" Grid.Column="0" x:Name="publicKeyPathTextBox" VerticalAlignment="Center" Margin="5"/>
-            <TextBox Grid.Row="2" Grid.Column="0" x:Name="privateKeyPathTextBox" VerticalAlignment="Center" Margin="5"/>
 
-            <Button Grid.Row="1" Grid.Column="1" Content="..." x:Name="privateKeyBrowseButton" HorizontalAlignment="Center" VerticalAlignment="Center" Width="18" Click="BrowseButton_Click"/>
-            <Button Grid.Row="2" Grid.Column="1" Content="..." x:Name="publicKeyBrowseButton" HorizontalAlignment="Center" VerticalAlignment="Center" Width="18" Click="BrowseButton_Click"/>
+            <TextBlock Grid.Row="0"  Text="Public Key:" Margin="5,5,0,0"/>
+            <StackPanel Grid.Row="1" Orientation="Vertical" Margin="5,0,5,0">
+                <StackPanel Grid.Row="1" Orientation="Horizontal">
+                    <TextBox x:Name="publicKeyPathTextBox" VerticalAlignment="Center" Width="300"/>
+                    <Button Content="Browse..." x:Name="publicKeyBrowseButton" HorizontalAlignment="Right" VerticalAlignment="Center" Width="auto" Click="BrowseButton_Click" Margin="5"/>
+                </StackPanel>
+            </StackPanel>
+            <TextBlock Grid.Row="2" Text="Private Key:" Margin="5,5,0,0"/>
+            <StackPanel Grid.Row="3" Orientation="Vertical" Margin="5,0,5,0">
+                <StackPanel Grid.Row="1" Orientation="Horizontal">
+                    <TextBox x:Name="privateKeyPathTextBox" VerticalAlignment="Center" Width="300"/>
+                    <Button Content="Browse..." x:Name="privateKeyBrowseButton" HorizontalAlignment="Right" VerticalAlignment="Center" Width="auto" Click="BrowseButton_Click" Margin="5"/>
+                </StackPanel>
+                <CheckBox Grid.Row="1" x:Name="privateKeyEncryptedCheckBox" Content="Encrypted" IsChecked="True"/>
+            </StackPanel>
+            <TextBlock Grid.Row="4" Text="You need at least one key to use this programm. You can choose private key to sign and encrypt files, public key to check signature and decrypt files, or both." TextWrapping="Wrap" Margin="5" FontSize="10"/>
+
 
         </Grid>
-        <Button Grid.Row="1" Content="Continue" HorizontalAlignment="Right" VerticalAlignment="Center" Width="60" Margin="5"/>
-        <Button Grid.Row="1" Content="Generate" HorizontalAlignment="Right" VerticalAlignment="Center" Width="60" Margin="5,5,70,5"/>
+        <Border Grid.Row="1" BorderBrush="Black" BorderThickness="0,2,0,0"/>
+        <Button Grid.Row="1" Content="Continue" HorizontalAlignment="Right" VerticalAlignment="Center" Width="60" Margin="5" Click="ContinueButton_Click"/>
+        <Button Grid.Row="1" Content="Generate" HorizontalAlignment="Right" VerticalAlignment="Center" Width="60" Margin="5,5,70,5" Click="GenerateButton_Click"/>
     </Grid>
 </Window>
