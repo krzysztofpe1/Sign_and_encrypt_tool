@@ -9,7 +9,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\encrypt_icon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\SignAndEncyptTool\SignAndEncyptTool\SignAndEncyptTool.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\encrypt_icon.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
 </Project>

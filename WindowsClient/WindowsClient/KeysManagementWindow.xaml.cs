@@ -23,7 +23,7 @@ public partial class KeysManagementWindow : Window
 
     #region Public Props
 
-    public KeyManager KeyManager { get; private set; }
+    public KeyManager KeyManager { get; private set; } = new();
 
     #endregion
 

@@ -1,11 +1,15 @@
-﻿using System.Diagnostics;
+﻿using SignAndEncyptTool.KeysManagement;
+using System.Diagnostics;
 using System.Windows;
+using WindowsClient.Views;
 
 namespace WindowsClient;
 
 public partial class MainWindow : Window
 {
     private bool _dispose = false;
+    private KeyManager _keyManager;
+
     public MainWindow()
     {
         var keysWindow = new KeysManagementWindow();
@@ -13,24 +17,18 @@ public partial class MainWindow : Window
         {
             _dispose = true;
         }
+        _keyManager = keysWindow.KeyManager;
         InitializeComponent();
-    }
-
-    private void BrowseButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender == signatureCheckBrowseButton)
-        {
-            Debug.WriteLine("Check");
-        }
-        else if (sender == signatureSignBrowseButton)
-        {
-            Debug.WriteLine("Sign");
-        }
     }
 
     private void Window_Loaded(object sender, RoutedEventArgs e)
     {
-        if(_dispose)
+        if (_dispose)
             Close();
+        else
+        {
+            signatureContentControl.Content = new SignatureView(_keyManager);
+            encryptionContentControl.Content = new EncryptionView(_keyManager);
+        }
     }
 }
