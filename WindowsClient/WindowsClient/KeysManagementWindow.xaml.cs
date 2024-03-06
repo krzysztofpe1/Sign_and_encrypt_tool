@@ -1,26 +1,43 @@
 ﻿using Microsoft.Win32;
-using System.IO;
-using System.Security.Cryptography;
+using SignAndEncyptTool.KeysManagement;
 using System.Windows;
 
 namespace WindowsClient;
 
 public partial class KeysManagementWindow : Window
 {
+
+    #region Private vars
+
     /// <summary>
     /// Change this field value accordingly: true - correctly parsed one of the keys, false - user closed the window
     /// </summary>
     private bool _returnValue = false;
+
+    #endregion
+
     public KeysManagementWindow()
     {
         InitializeComponent();
     }
+
+    #region Public Props
+
+    public KeyManager KeyManager { get; private set; }
+
+    #endregion
+
+    #region Public Methods
 
     public new bool? ShowDialog()
     {
         base.ShowDialog();
         return _returnValue;
     }
+
+    #endregion
+
+    #region GUI Interactions
 
     private void BrowseButton_Click(object sender, RoutedEventArgs e)
     {
@@ -44,30 +61,12 @@ public partial class KeysManagementWindow : Window
     {
         var privKeyPath = privateKeyPathTextBox.Text;
         var pubKeyPath = publicKeyPathTextBox.Text;
-        if (privKeyPath == string.Empty || pubKeyPath == string.Empty)
-        {
-            MessageBoxes.Error("You have to specify path for one of keys.", "Invalid keys path");
-        }
 
         if (privKeyPath != string.Empty)
         {
-            try
-            {
-                if (!File.Exists(privKeyPath))
-                {
-                    MessageBoxes.Error("File under specified path doesn't exist.", "Invalid private key path");
-                }
-            }
-            catch
-            {
-                MessageBoxes.Error("Program doesn't have sufficient privileges to open private key file.", "Invalid private key path");
-            }
-            string privateKeyText = string.Empty;
-
-            //Private Key is encrypted
+            KeyManager.PrivateKeyPath = privKeyPath;
             if (privateKeyEncryptedCheckBox.IsChecked.Value)
             {
-
                 SimpleInputWindow siw;
                 do
                 {
@@ -75,18 +74,17 @@ public partial class KeysManagementWindow : Window
                     siw.ShowDialog();
                     if (siw.Input == -1)
                     {
+                        _returnValue = false;
                         return;
                     }
                     try
                     {
-                        using (StreamReader sr = new(privKeyPath))
+                        if (KeyManager.VerifyPrivateKey(siw.Input.ToString()))
+                            _returnValue = true;
+                        else
                         {
-                            string encryptedText = sr.ReadToEnd();
-                            //decrypting the key
-                            string decryptedText;
-
-                            using RSA rsa = RSA.Create();
-                            rsa.ImportRSAPrivateKey(Convert.FromBase64String(encryptedText), out _);
+                            _returnValue = false;
+                            return;
                         }
                     }
                     catch (Exception ex)
@@ -95,32 +93,63 @@ public partial class KeysManagementWindow : Window
                     }
                 } while (true);
             }
-            //Private Key is not encrypted
             else
             {
                 try
                 {
-                    using (StreamReader sr = new(privKeyPath))
+                    if (KeyManager.VerifyPrivateKey())
                     {
-                        string keyText = sr.ReadToEnd();
-
-                        using RSA rsa = RSA.Create();
-                        rsa.ImportRSAPrivateKey(Convert.FromBase64String(keyText), out _);
                         _returnValue = true;
-                        Close();
+                    }
+                    else
+                    {
+                        KeyManager.PrivateKeyPath = string.Empty;
+                        _returnValue = false;
+                        MessageBoxes.Error("Supplied file is not in valid RSA private key format.", "Public key verification failure");
+                        return;
                     }
                 }
                 catch (Exception ex)
                 {
-                    MessageBoxes.Error(ex.Message, "Reading private key error");
+                    KeyManager.PrivateKeyPath = string.Empty;
+                    MessageBoxes.Error(ex.Message, "Private key verification failure");
+                    return;
                 }
             }
-
         }
+
+        // public key verification
+        if (pubKeyPath != string.Empty)
+        {
+            KeyManager.PublicKeyPath = pubKeyPath;
+            try
+            {
+                if (KeyManager.VerifyPublicKey())
+                    _returnValue = true;
+                else
+                {
+                    KeyManager.PublicKeyPath = string.Empty;
+                    _returnValue = false;
+                    MessageBoxes.Error("Supplied file is not in valid RSA public key format.", "Public key verification failure");
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                KeyManager.PublicKeyPath = string.Empty;
+                _returnValue = false;
+                MessageBoxes.Error(ex.Message, "Public key verification failure");
+                return;
+            }
+        }
+        Close();
     }
 
     private void GenerateButton_Click(object sender, RoutedEventArgs e)
     {
 
     }
+
+    #endregion
+
 }
