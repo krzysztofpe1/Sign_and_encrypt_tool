@@ -5,7 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WindowsClient"
         mc:Ignorable="d"
-        Title="Sign And Encrypt Tool" Height="250" Width="400" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Resources/encrypt_icon.png">
+        Title="Sign And Encrypt Tool"
+        Height="250" Width="400"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        Icon="/Resources/encrypt_icon.png">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition/>
