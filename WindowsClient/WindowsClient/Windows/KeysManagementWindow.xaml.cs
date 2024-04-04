@@ -29,7 +29,7 @@ public partial class KeysManagementWindow : Window
 
     #endregion
 
-    #region Public Methods
+    #region overriden ShowDialog
 
     public new bool? ShowDialog()
     {
@@ -87,7 +87,10 @@ public partial class KeysManagementWindow : Window
                     try
                     {
                         if (KeyManager.VerifyPrivateKey(siw.Input.ToString()))
+                        {
                             _returnValue = true;
+                            break;
+                        }
                         else
                         {
                             _returnValue = false;

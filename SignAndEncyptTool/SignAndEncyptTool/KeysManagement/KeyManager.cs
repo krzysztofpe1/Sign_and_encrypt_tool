@@ -98,36 +98,32 @@ public class KeyManager
         {
             if (!File.Exists(PrivateKeyPath))
             {
-                throw new SAEException("File doesn't exist");
+                throw new SAEException("Private key file doesn't exist.");
             }
-        }
-        catch
-        {
-            throw new SAEException("Program doesn't have sufficient privileges to open private key file.");
-        }
-        try
-        {
-            using (StreamReader sr = new(PrivateKeyPath))
-            {
-                _privateKeyText = sr.ReadToEnd();
-            }
+
+            // Read the private key from the file
+            string privateKeyBase64 = File.ReadAllText(PrivateKeyPath);
+
+            // Decrypt the private key if passphrase is provided
             if (!passphrase.IsNullOrEmpty())
             {
-                _privateKeyText = AESManager.DecryptAES(_privateKeyText, passphrase);
+                privateKeyBase64 = AESManager.DecryptAES(privateKeyBase64, passphrase);
             }
-            try
-            {
-                _rsa.ImportRSAPrivateKey(Convert.FromBase64String(_privateKeyText), out _);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+
+            // Convert the base64 string to byte array
+            byte[] privateKeyBytes = Convert.FromBase64String(privateKeyBase64);
+
+            // Import the private key into the RSA instance
+            _rsa.ImportRSAPrivateKey(privateKeyBytes, out _);
+            return true;
         }
-        catch
+        catch (SAEException)
         {
-            throw new SAEException("Program doesn't have sufficient privileges to open private key file.");
+            throw; // Re-throw SAEException
+        }
+        catch (Exception ex)
+        {
+            throw new SAEException("Failed to verify private key.", ex);
         }
     }
 
@@ -177,9 +173,11 @@ public class KeyManager
 
         using (RSA rsa = RSA.Create(DEFAULT_KEY_SIZE))
         {
+            // Export private key
             byte[] privateKeyBytes = rsa.ExportRSAPrivateKey();
             string privateKeyBase64 = Convert.ToBase64String(privateKeyBytes);
 
+            // Encrypt private key if passphrase is provided
             if (!passphrase.IsNullOrEmpty())
             {
                 privateKeyBase64 = AESManager.EncryptAES(privateKeyBase64, passphrase);

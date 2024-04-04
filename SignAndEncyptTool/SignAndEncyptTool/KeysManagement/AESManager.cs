@@ -7,34 +7,55 @@ internal class AESManager
 {
     public static string DecryptAES(string encryptedText, string passphrase)
     {
-        byte[] encryptedBytes = Convert.FromBase64String(encryptedText);
+        byte[] cipherBytes = Convert.FromBase64String(encryptedText);
+        using (Aes aesAlg = Aes.Create())
+        {
+            aesAlg.Key = GenerateKey(passphrase, aesAlg.KeySize);
+            aesAlg.IV = new byte[aesAlg.BlockSize / 8]; // Initialization vector is not used in this example, but it should be if you're using AES for real encryption
 
-        using Aes aes = Aes.Create();
-        aes.Key = SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(passphrase));
-        aes.IV = new byte[16]; // Assuming the IV is stored along with the encrypted data
-
-        using MemoryStream memoryStream = new MemoryStream(encryptedBytes);
-        using CryptoStream cryptoStream = new CryptoStream(memoryStream, aes.CreateDecryptor(), CryptoStreamMode.Read);
-        using StreamReader streamReader = new StreamReader(cryptoStream);
-
-        return streamReader.ReadToEnd();
+            using (MemoryStream msDecrypt = new MemoryStream(cipherBytes))
+            {
+                using (CryptoStream csDecrypt = new CryptoStream(msDecrypt, aesAlg.CreateDecryptor(aesAlg.Key, aesAlg.IV), CryptoStreamMode.Read))
+                {
+                    using (StreamReader srDecrypt = new StreamReader(csDecrypt))
+                    {
+                        return srDecrypt.ReadToEnd();
+                    }
+                }
+            }
+        }
     }
+
     public static string EncryptAES(string plaintext, string passphrase)
     {
-        using Aes aes = Aes.Create();
-        aes.Key = SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(passphrase));
-        var iv = new byte[16];
-        new Random().NextBytes(iv);
-        aes.IV = iv;
+        using (Aes aesAlg = Aes.Create())
+        {
+            aesAlg.Key = GenerateKey(passphrase, aesAlg.KeySize);
+            aesAlg.IV = new byte[aesAlg.BlockSize / 8]; // Initialization vector is not used in this example, but it should be if you're using AES for real encryption
 
-        using MemoryStream memoryStream = new MemoryStream();
-        using CryptoStream cryptoStream = new CryptoStream(memoryStream, aes.CreateEncryptor(), CryptoStreamMode.Write);
-        using StreamWriter streamWriter = new StreamWriter(cryptoStream);
+            using (MemoryStream msEncrypt = new MemoryStream())
+            {
+                using (CryptoStream csEncrypt = new CryptoStream(msEncrypt, aesAlg.CreateEncryptor(aesAlg.Key, aesAlg.IV), CryptoStreamMode.Write))
+                {
+                    using (StreamWriter swEncrypt = new StreamWriter(csEncrypt))
+                    {
+                        swEncrypt.Write(plaintext);
+                    }
+                }
+                return Convert.ToBase64String(msEncrypt.ToArray());
+            }
+        }
+    }
 
-        streamWriter.Write(plaintext);
-        streamWriter.Flush();
-        cryptoStream.FlushFinalBlock();
+    private static byte[] GenerateKey(string passphrase, int keySize)
+    {
+        byte[] key = new byte[keySize / 8];
+        byte[] salt = Encoding.UTF8.GetBytes("YourSaltValue");
 
-        return Convert.ToBase64String(memoryStream.ToArray());
+        using (var deriveBytes = new Rfc2898DeriveBytes(passphrase, salt))
+        {
+            key = deriveBytes.GetBytes(keySize / 8);
+        }
+        return key;
     }
 }
