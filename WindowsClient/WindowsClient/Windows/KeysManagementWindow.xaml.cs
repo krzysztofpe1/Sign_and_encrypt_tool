@@ -1,6 +1,8 @@
 ﻿using Microsoft.Win32;
 using SignAndEncyptTool.KeysManagement;
+using SignAndEncyptTool.Utils;
 using System.Windows;
+using WindowsClient.Windows;
 
 namespace WindowsClient;
 
@@ -27,7 +29,7 @@ public partial class KeysManagementWindow : Window
 
     #endregion
 
-    #region Public Methods
+    #region overriden ShowDialog
 
     public new bool? ShowDialog()
     {
@@ -62,6 +64,11 @@ public partial class KeysManagementWindow : Window
         var privKeyPath = privateKeyPathTextBox.Text;
         var pubKeyPath = publicKeyPathTextBox.Text;
 
+        if(privKeyPath.IsNullOrEmpty() && pubKeyPath.IsNullOrEmpty())
+        {
+            MessageBoxes.Error("You have to specify at least one key.", "No key was specified");
+        }
+
         if (privKeyPath != string.Empty)
         {
             KeyManager.PrivateKeyPath = privKeyPath;
@@ -80,7 +87,10 @@ public partial class KeysManagementWindow : Window
                     try
                     {
                         if (KeyManager.VerifyPrivateKey(siw.Input.ToString()))
+                        {
                             _returnValue = true;
+                            break;
+                        }
                         else
                         {
                             _returnValue = false;
@@ -147,7 +157,15 @@ public partial class KeysManagementWindow : Window
 
     private void GenerateButton_Click(object sender, RoutedEventArgs e)
     {
-
+        var window = new GenerateKeyWindow();
+        window.ShowDialog();
+        var keyManager = window.KeyManager;
+        if(keyManager != null)
+        {
+            KeyManager = keyManager;
+            privateKeyPathTextBox.Text = keyManager.PrivateKeyPath;
+            publicKeyPathTextBox.Text= keyManager.PublicKeyPath;
+        }
     }
 
     #endregion

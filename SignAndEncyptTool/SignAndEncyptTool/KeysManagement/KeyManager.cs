@@ -1,9 +1,19 @@
-﻿using System.Security.Cryptography;
+﻿using SignAndEncyptTool.Utils;
+using System.Security.Cryptography;
 
 namespace SignAndEncyptTool.KeysManagement;
 
 public class KeyManager
 {
+
+    #region Private default file names
+
+    private const string DEFAULT_PRIVATE_KEY_NAME = "privateKey";
+    private const string DEFAULT_PUBLIC_KEY_NAME = "pubKey.pub";
+    private const Int32 DEFAULT_KEY_SIZE = 2048;
+
+    #endregion
+
     #region Private vars
 
     private string _privateKeyText = string.Empty;
@@ -44,6 +54,8 @@ public class KeyManager
     public KeyManager() { }
 
     #region Public Methods
+
+    #region Verify
 
     public bool Verify(string? passphrase = null)
     {
@@ -86,36 +98,32 @@ public class KeyManager
         {
             if (!File.Exists(PrivateKeyPath))
             {
-                throw new SAEException("File doesn't exist");
+                throw new SAEException("Private key file doesn't exist.");
             }
+
+            // Read the private key from the file
+            string privateKeyBase64 = File.ReadAllText(PrivateKeyPath);
+
+            // Decrypt the private key if passphrase is provided
+            if (!passphrase.IsNullOrEmpty())
+            {
+                privateKeyBase64 = AESManager.DecryptAES(privateKeyBase64, passphrase);
+            }
+
+            // Convert the base64 string to byte array
+            byte[] privateKeyBytes = Convert.FromBase64String(privateKeyBase64);
+
+            // Import the private key into the RSA instance
+            _rsa.ImportRSAPrivateKey(privateKeyBytes, out _);
+            return true;
         }
-        catch
+        catch (SAEException)
         {
-            throw new SAEException("Program doesn't have sufficient privileges to open private key file.");
+            throw; // Re-throw SAEException
         }
-        try
+        catch (Exception ex)
         {
-            using (StreamReader sr = new(PrivateKeyPath))
-            {
-                _privateKeyText = sr.ReadToEnd();
-            }
-            if (passphrase != null && passphrase != string.Empty)
-            {
-                _privateKeyText = AESManager.DecryptAES(_privateKeyText, passphrase);
-            }
-            try
-            {
-                _rsa.ImportRSAPrivateKey(Convert.FromBase64String(_privateKeyText), out _);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-        catch
-        {
-            throw new SAEException("Program doesn't have sufficient privileges to open private key file.");
+            throw new SAEException("Failed to verify private key.", ex);
         }
     }
 
@@ -151,6 +159,44 @@ public class KeyManager
             return false;
         }
     }
+
+    #endregion
+
+    #region Generate
+
+    public void GenerateKeys(string path, string? passphrase = null)
+    {
+        if (path.IsNullOrEmpty())
+            throw new SAEException("Path was null or empty while trying to generate keys.");
+        if (passphrase != null && passphrase.Length < 4)
+            throw new SAEException("Passphrase was shorter than 4 letters while trying to generate keys.");
+
+        using (RSA rsa = RSA.Create(DEFAULT_KEY_SIZE))
+        {
+            // Export private key
+            byte[] privateKeyBytes = rsa.ExportRSAPrivateKey();
+            string privateKeyBase64 = Convert.ToBase64String(privateKeyBytes);
+
+            // Encrypt private key if passphrase is provided
+            if (!passphrase.IsNullOrEmpty())
+            {
+                privateKeyBase64 = AESManager.EncryptAES(privateKeyBase64, passphrase);
+            }
+
+            // Export public key
+            byte[] publicKeyBytes = rsa.ExportRSAPublicKey();
+            string publicKeyBase64 = Convert.ToBase64String(publicKeyBytes);
+
+            // Save keys to files
+            PrivateKeyPath = Path.Combine(path, DEFAULT_PRIVATE_KEY_NAME);
+            PublicKeyPath = Path.Combine(path, DEFAULT_PUBLIC_KEY_NAME);
+
+            File.WriteAllText(PrivateKeyPath, privateKeyBase64);
+            File.WriteAllText(PublicKeyPath, publicKeyBase64);
+        }
+    }
+
+    #endregion
 
     #endregion
 
