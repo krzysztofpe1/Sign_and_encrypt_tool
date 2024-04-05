@@ -1,18 +1,16 @@
 ﻿using Microsoft.Win32;
 using SignAndEncyptTool.KeysManagement;
-using SignAndEncyptTool.Utils;
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using WindowsClient.Utils;
 
 namespace WindowsClient.Views;
 
-public partial class EncryptionView : UserControl
+public partial class DecryptionView : UserControl
 {
     private readonly KeyManager _keyManager;
 
-    public EncryptionView(KeyManager keyManager)
+    public DecryptionView(KeyManager keyManager)
     {
         InitializeComponent();
         _keyManager = keyManager;
@@ -29,26 +27,16 @@ public partial class EncryptionView : UserControl
         pathTextBox.Text = ofd.FileName;
     }
 
-    private void EncryptButton_Click(object sender, RoutedEventArgs e)
+    private void DecryptButton_Click(object sender, RoutedEventArgs e)
     {
-        var mbResult = MessageBoxes.YesNoCancel("Do you want to replace the source file with an encrypted file?", "Replace source file");
-        
+        var mbResult = MessageBoxes.YesNoCancel("Do you want to replace the source file with a decrypted file?", "Replace source file");
+        var path = pathTextBox.Text;
         if (mbResult == MessageBoxResult.Cancel)
             return;
-        
-        var path = pathTextBox.Text;
-
-        if (mbResult == MessageBoxResult.No)
+        if (mbResult == MessageBoxResult.Yes)
         {
             var sfd = new SaveFileDialog();
-            string filter = "Encrypted file .enc|*.enc";
-            //Add custom file extension
-            var originalExtenstion = Path.GetExtension(pathTextBox.Text);
-            var customExtension = originalExtenstion + ".enc";
-            if (!originalExtenstion.IsNullOrEmpty())
-                filter += $"|Encrypted file *{customExtension}|*{customExtension}";
-            sfd.Filter = filter;
-            sfd.FilterIndex = 0;
+            sfd.Filter = "Encrypted file .enc|*.enc";
             if (sfd.ShowDialog().Value)
                 path = sfd.FileName;
             else

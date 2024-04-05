@@ -15,6 +15,9 @@
             <TabItem Header="Encryption">
                 <ContentControl x:Name="encryptionContentControl"/>
             </TabItem>
+            <TabItem Header="Decryption">
+                <ContentControl x:Name="decryptionContentControl"/>
+            </TabItem>
         </TabControl>
     </Grid>
 </Window>
