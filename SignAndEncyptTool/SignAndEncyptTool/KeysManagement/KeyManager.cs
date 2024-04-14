@@ -18,7 +18,7 @@ public class KeyManager
 
     private bool _verifiedPrivateKey = false;
     private bool _verifiedPublicKey = false;
-    private RSA _rsa = RSA.Create();
+    private RSACryptoServiceProvider _rsa = new();
 
     #endregion
 
@@ -193,7 +193,7 @@ public class KeyManager
         if (passphrase != null && passphrase.Length < 4)
             throw new SAEException("Passphrase was shorter than 4 letters while trying to generate keys.");
 
-        _rsa = RSA.Create(2048);
+        _rsa = new RSACryptoServiceProvider(2048);
 
         // Export private key
         byte[] privateKeyBytes = _rsa.ExportRSAPrivateKey();
@@ -231,7 +231,7 @@ public class KeyManager
 
             byte[] sourceData = File.ReadAllBytes(sourcePath);
 
-            byte[] encryptedData = _rsa.Encrypt(sourceData, RSAEncryptionPadding.OaepSHA256);
+            byte[] encryptedData = _rsa.Encrypt(sourceData, false);
 
             File.WriteAllBytes(encryptedFileDestinationPath, encryptedData);
 
@@ -252,7 +252,7 @@ public class KeyManager
 
             byte[] encryptedData = File.ReadAllBytes(sourcePath);
 
-            byte[] decryptedData = _rsa.Decrypt(encryptedData, RSAEncryptionPadding.OaepSHA256);
+            byte[] decryptedData = _rsa.Decrypt(encryptedData, false);
 
             File.WriteAllBytes(decryptedFileDestinationPath, decryptedData);
 
