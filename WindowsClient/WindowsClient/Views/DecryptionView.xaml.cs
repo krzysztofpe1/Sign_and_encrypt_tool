@@ -33,7 +33,7 @@ public partial class DecryptionView : UserControl
         var path = pathTextBox.Text;
         if (mbResult == MessageBoxResult.Cancel)
             return;
-        if (mbResult == MessageBoxResult.Yes)
+        if (mbResult == MessageBoxResult.No)
         {
             var sfd = new SaveFileDialog();
             sfd.Filter = "Encrypted file .enc|*.enc";
@@ -48,7 +48,7 @@ public partial class DecryptionView : UserControl
         //mbResult is equal "Yes"
         try
         {
-            _keyManager.Encrypt(pathTextBox.Text, path);
+            _keyManager.Decrypt(pathTextBox.Text, path);
             MessageBoxes.Info($"File was successfully encrypted and saved to location: {path}", "Encryption successfull");
         }
         catch (Exception ex)
