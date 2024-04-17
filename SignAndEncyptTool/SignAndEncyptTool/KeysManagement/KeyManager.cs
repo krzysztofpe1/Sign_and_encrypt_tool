@@ -11,6 +11,7 @@ public class KeyManager
     private const string DEFAULT_PRIVATE_KEY_NAME = "privateKey";
     private const string DEFAULT_PUBLIC_KEY_NAME = "pubKey.pub";
     private const Int32 DEFAULT_KEY_SIZE = 2048;
+    private const bool FOAEP = false;
 
     #endregion
 
@@ -231,7 +232,7 @@ public class KeyManager
 
             byte[] sourceData = File.ReadAllBytes(sourcePath);
 
-            byte[] encryptedData = _rsa.Encrypt(sourceData, false);
+            byte[] encryptedData = _rsa.Encrypt(sourceData, FOAEP);
 
             File.WriteAllBytes(encryptedFileDestinationPath, encryptedData);
 
@@ -252,7 +253,7 @@ public class KeyManager
 
             byte[] encryptedData = File.ReadAllBytes(sourcePath);
 
-            byte[] decryptedData = _rsa.Decrypt(encryptedData, false);
+            byte[] decryptedData = _rsa.Decrypt(encryptedData, FOAEP);
 
             File.WriteAllBytes(decryptedFileDestinationPath, decryptedData);
 
