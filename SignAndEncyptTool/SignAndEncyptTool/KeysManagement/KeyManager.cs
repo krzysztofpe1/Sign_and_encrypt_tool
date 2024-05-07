@@ -19,6 +19,8 @@ public class KeyManager
 
     private bool _verifiedPrivateKey = false;
     private bool _verifiedPublicKey = false;
+    private byte[] _privateKey = null!;
+    private byte[] _publicKey = null!;
     private RSACryptoServiceProvider _rsa = new();
 
     #endregion
@@ -135,6 +137,7 @@ public class KeyManager
             // Import the private key into the RSA instance
             _rsa.ImportRSAPrivateKey(privateKeyBytes, out _);
             _verifiedPrivateKey = true;
+            _privateKey = privateKeyBytes;
             return true;
         }
         catch (SAEException)
@@ -173,8 +176,10 @@ public class KeyManager
             {
                 publicKeyText = sr.ReadToEnd();
             }
-            _rsa.ImportRSAPublicKey(Convert.FromBase64String(publicKeyText), out _);
+            var publicKeyBytes = Convert.FromBase64String(publicKeyText);
+            _rsa.ImportRSAPublicKey(publicKeyBytes, out _);
             _verifiedPublicKey = true;
+            _publicKey = publicKeyBytes;
             return true;
         }
         catch
@@ -230,12 +235,16 @@ public class KeyManager
             if (!IsVerified)
                 throw new SAEException("Keys are not verified.");
 
-            byte[] sourceData = File.ReadAllBytes(sourcePath);
+            using (var rsa = new RSACryptoServiceProvider())
+            {
+                rsa.ImportRSAPublicKey(_publicKey, out _);
 
-            byte[] encryptedData = _rsa.Encrypt(sourceData, FOAEP);
+                byte[] sourceData = File.ReadAllBytes(sourcePath);
 
-            File.WriteAllBytes(encryptedFileDestinationPath, encryptedData);
+                byte[] encryptedData = rsa.Encrypt(sourceData, FOAEP);
 
+                File.WriteAllBytes(encryptedFileDestinationPath, encryptedData);
+            }
             return true;
         }
         catch (Exception ex)
@@ -251,12 +260,16 @@ public class KeyManager
             if (!IsVerified)
                 throw new SAEException("Keys are not verified.");
 
-            byte[] encryptedData = File.ReadAllBytes(sourcePath);
+            using (var rsa = new RSACryptoServiceProvider())
+            {
+                rsa.ImportRSAPrivateKey(_privateKey, out _);
 
-            byte[] decryptedData = _rsa.Decrypt(encryptedData, FOAEP);
+                byte[] encryptedData = File.ReadAllBytes(sourcePath);
 
-            File.WriteAllBytes(decryptedFileDestinationPath, decryptedData);
+                byte[] decryptedData = rsa.Decrypt(encryptedData, FOAEP);
 
+                File.WriteAllBytes(decryptedFileDestinationPath, decryptedData);
+            }
             return true;
         }
         catch (Exception ex)
