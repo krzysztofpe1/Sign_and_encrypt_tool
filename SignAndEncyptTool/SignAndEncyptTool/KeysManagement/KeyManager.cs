@@ -11,15 +11,17 @@ public class KeyManager
     private const string DEFAULT_PRIVATE_KEY_NAME = "privateKey";
     private const string DEFAULT_PUBLIC_KEY_NAME = "pubKey.pub";
     private const Int32 DEFAULT_KEY_SIZE = 2048;
+    private const bool FOAEP = false;
 
     #endregion
 
     #region Private vars
 
-    private string _privateKeyText = string.Empty;
-    private string _publicKeyText = string.Empty;
-    private bool _verified = false;
-    private RSA _rsa = RSA.Create();
+    private bool _verifiedPrivateKey = false;
+    private bool _verifiedPublicKey = false;
+    private byte[] _privateKey = null!;
+    private byte[] _publicKey = null!;
+    private RSACryptoServiceProvider _rsa = new();
 
     #endregion
 
@@ -32,7 +34,7 @@ public class KeyManager
         set
         {
             _privateKeyPath = value;
-            _verified = false;
+            _verifiedPrivateKey = false;
         }
     }
 
@@ -43,11 +45,35 @@ public class KeyManager
         set
         {
             _publicKeyPath = value;
-            _verified = false;
+            _verifiedPublicKey = false;
         }
     }
 
-    public bool IsVerified { get { return _verified; } }
+    public bool IsVerified
+    {
+        get
+        {
+            if (PrivateKeyPath.IsNullOrEmpty() && PublicKeyPath.IsNullOrEmpty())
+                return false;
+
+            if (!_verifiedPrivateKey && !_verifiedPublicKey)
+                return false;
+
+            if (!PrivateKeyPath.IsNullOrEmpty())
+            {
+                if (!_verifiedPrivateKey)
+                    return false;
+            }
+
+            if (!PublicKeyPath.IsNullOrEmpty())
+            {
+                if (!_verifiedPublicKey)
+                    return false;
+            }
+
+            return true;
+        }
+    }
 
     #endregion
 
@@ -59,32 +85,26 @@ public class KeyManager
 
     public bool Verify(string? passphrase = null)
     {
-        if (_verified)
+        if (IsVerified)
             return true;
 
         if (PublicKeyPath == string.Empty && PrivateKeyPath == string.Empty)
-            return _verified = false;
+            return false;
 
         if (PublicKeyPath != string.Empty)
         {
-            if (VerifyPublicKey())
-                _verified = true;
-            else
-                return _verified = false;
+            if (!VerifyPublicKey())
+                return false;
         }
 
         if (PrivateKeyPath != string.Empty)
         {
-            if (VerifyPrivateKey(passphrase))
-                _verified = true;
-            else
-                return _verified = false;
+            if (!VerifyPrivateKey(passphrase))
+                return false;
         }
 
-        return _verified;
+        return true;
     }
-
-
 
     /// <summary>
     /// 
@@ -94,6 +114,7 @@ public class KeyManager
     /// <exception cref="SAEException"></exception>
     public bool VerifyPrivateKey(string? passphrase = null)
     {
+        _verifiedPrivateKey = false;
         try
         {
             if (!File.Exists(PrivateKeyPath))
@@ -115,6 +136,8 @@ public class KeyManager
 
             // Import the private key into the RSA instance
             _rsa.ImportRSAPrivateKey(privateKeyBytes, out _);
+            _verifiedPrivateKey = true;
+            _privateKey = privateKeyBytes;
             return true;
         }
         catch (SAEException)
@@ -134,6 +157,7 @@ public class KeyManager
     /// <exception cref="SAEException"></exception>
     public bool VerifyPublicKey()
     {
+        _verifiedPublicKey = false;
         try
         {
             if (!File.Exists(PublicKeyPath))
@@ -147,11 +171,15 @@ public class KeyManager
         }
         try
         {
+            string publicKeyText = string.Empty;
             using (StreamReader sr = new(PublicKeyPath))
             {
-                _publicKeyText = sr.ReadToEnd();
+                publicKeyText = sr.ReadToEnd();
             }
-            _rsa.ImportRSAPublicKey(Convert.FromBase64String(_publicKeyText), out _);
+            var publicKeyBytes = Convert.FromBase64String(publicKeyText);
+            _rsa.ImportRSAPublicKey(publicKeyBytes, out _);
+            _verifiedPublicKey = true;
+            _publicKey = publicKeyBytes;
             return true;
         }
         catch
@@ -171,28 +199,82 @@ public class KeyManager
         if (passphrase != null && passphrase.Length < 4)
             throw new SAEException("Passphrase was shorter than 4 letters while trying to generate keys.");
 
-        using (RSA rsa = RSA.Create(DEFAULT_KEY_SIZE))
+        _rsa = new RSACryptoServiceProvider(2048);
+
+        // Export private key
+        byte[] privateKeyBytes = _rsa.ExportRSAPrivateKey();
+        string privateKeyBase64 = Convert.ToBase64String(privateKeyBytes);
+
+        // Encrypt private key if passphrase is provided
+        if (!passphrase.IsNullOrEmpty())
         {
-            // Export private key
-            byte[] privateKeyBytes = rsa.ExportRSAPrivateKey();
-            string privateKeyBase64 = Convert.ToBase64String(privateKeyBytes);
+            privateKeyBase64 = AESManager.EncryptAES(privateKeyBase64, passphrase);
+        }
 
-            // Encrypt private key if passphrase is provided
-            if (!passphrase.IsNullOrEmpty())
+        // Export public key
+        byte[] publicKeyBytes = _rsa.ExportRSAPublicKey();
+        string publicKeyBase64 = Convert.ToBase64String(publicKeyBytes);
+
+        // Save keys to files
+        PrivateKeyPath = Path.Combine(path, DEFAULT_PRIVATE_KEY_NAME);
+        PublicKeyPath = Path.Combine(path, DEFAULT_PUBLIC_KEY_NAME);
+
+        File.WriteAllText(PrivateKeyPath, privateKeyBase64);
+        File.WriteAllText(PublicKeyPath, publicKeyBase64);
+
+    }
+
+    #endregion
+
+    #region Encrypt/Decrypt
+
+    public bool Encrypt(string sourcePath, string encryptedFileDestinationPath)
+    {
+        try
+        {
+            if (!IsVerified)
+                throw new SAEException("Keys are not verified.");
+
+            using (var rsa = new RSACryptoServiceProvider())
             {
-                privateKeyBase64 = AESManager.EncryptAES(privateKeyBase64, passphrase);
+                rsa.ImportRSAPublicKey(_publicKey, out _);
+
+                byte[] sourceData = File.ReadAllBytes(sourcePath);
+
+                byte[] encryptedData = rsa.Encrypt(sourceData, FOAEP);
+
+                File.WriteAllBytes(encryptedFileDestinationPath, encryptedData);
             }
+            return true;
+        }
+        catch (Exception ex)
+        {
+            throw new SAEException("Failed to encrypt file.", ex);
+        }
+    }
 
-            // Export public key
-            byte[] publicKeyBytes = rsa.ExportRSAPublicKey();
-            string publicKeyBase64 = Convert.ToBase64String(publicKeyBytes);
+    public bool Decrypt(string sourcePath, string decryptedFileDestinationPath)
+    {
+        try
+        {
+            if (!IsVerified)
+                throw new SAEException("Keys are not verified.");
 
-            // Save keys to files
-            PrivateKeyPath = Path.Combine(path, DEFAULT_PRIVATE_KEY_NAME);
-            PublicKeyPath = Path.Combine(path, DEFAULT_PUBLIC_KEY_NAME);
+            using (var rsa = new RSACryptoServiceProvider())
+            {
+                rsa.ImportRSAPrivateKey(_privateKey, out _);
 
-            File.WriteAllText(PrivateKeyPath, privateKeyBase64);
-            File.WriteAllText(PublicKeyPath, publicKeyBase64);
+                byte[] encryptedData = File.ReadAllBytes(sourcePath);
+
+                byte[] decryptedData = rsa.Decrypt(encryptedData, FOAEP);
+
+                File.WriteAllBytes(decryptedFileDestinationPath, decryptedData);
+            }
+            return true;
+        }
+        catch (Exception ex)
+        {
+            throw new SAEException("Failed to decrypt file.", ex);
         }
     }
 

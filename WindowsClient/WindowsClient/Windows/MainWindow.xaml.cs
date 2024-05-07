@@ -29,6 +29,7 @@ public partial class MainWindow : Window
         {
             signatureContentControl.Content = new SignatureView(_keyManager);
             encryptionContentControl.Content = new EncryptionView(_keyManager);
+            decryptionContentControl.Content = new DecryptionView(_keyManager);
         }
     }
 }

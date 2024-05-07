@@ -2,6 +2,7 @@
 using SignAndEncyptTool.KeysManagement;
 using SignAndEncyptTool.Utils;
 using System.Windows;
+using WindowsClient.Utils;
 using WindowsClient.Windows;
 
 namespace WindowsClient;
