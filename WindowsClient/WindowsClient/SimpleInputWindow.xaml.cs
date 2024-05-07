@@ -17,14 +17,14 @@ public partial class SimpleInputWindow : Window
 
     private void OkButton_Click(object sender, RoutedEventArgs e)
     {
-        if(inputTextBox.Text.Length < 4)
+        if(inputPasswordBox.Password.Length < 4)
         {
             MessageBox.Show("Required at least 4 digits.");
             return;
         }
         try
         {
-            Input = int.Parse(inputTextBox.Text);
+            Input = int.Parse(inputPasswordBox.Password);
         }
         catch
         {

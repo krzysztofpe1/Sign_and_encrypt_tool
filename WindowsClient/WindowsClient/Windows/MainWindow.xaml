@@ -6,7 +6,8 @@
         xmlns:local="clr-namespace:WindowsClient"
         mc:Ignorable="d"
         Title="Sign And Encrypt Tool" Height="450" Width="400" ResizeMode="NoResize"
-        Loaded="Window_Loaded" Icon="/Resources/encrypt_icon.png">
+        Loaded="Window_Loaded" Icon="/Resources/encrypt_icon.png"
+        WindowStartupLocation="CenterScreen">
     <Grid>
         <TabControl>
             <TabItem Header="Signature">
