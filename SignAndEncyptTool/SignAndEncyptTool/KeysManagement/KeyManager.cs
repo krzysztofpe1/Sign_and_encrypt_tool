@@ -32,6 +32,7 @@ public class KeyManager
     public const string DEFAULT_SIGNATURE_SUFFIX = "_signature.xml";
     public const string DEFAULT_PRIVATE_KEY_NAME = "privateKey";
     public const string DEFAULT_PUBLIC_KEY_NAME = "pubKey.pub";
+    public const string DEFAULT_ENCRYPTED_FILE_EXTENSION = ".enc";
 
     #endregion
 

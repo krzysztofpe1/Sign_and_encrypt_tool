@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using SignAndEncyptTool.KeysManagement;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using WindowsClient.Utils;
@@ -30,13 +31,18 @@ public partial class DecryptionView : UserControl
     private void DecryptButton_Click(object sender, RoutedEventArgs e)
     {
         var mbResult = MessageBoxes.YesNoCancel("Do you want to replace the source file with a decrypted file?", "Replace source file");
+        
         var path = pathTextBox.Text;
+        
         if (mbResult == MessageBoxResult.Cancel)
             return;
+
         if (mbResult == MessageBoxResult.No)
         {
+            var originalExtension = Path.GetExtension(path.Replace(KeyManager.DEFAULT_ENCRYPTED_FILE_EXTENSION, ""));
+
             var sfd = new SaveFileDialog();
-            sfd.Filter = "Encrypted file .enc|*.enc";
+            sfd.Filter = $"Decrypted file *{originalExtension}|*{originalExtension}";
             if (sfd.ShowDialog().Value)
                 path = sfd.FileName;
             else
@@ -45,7 +51,7 @@ public partial class DecryptionView : UserControl
                 return;
             }
         }
-        //mbResult is equal "Yes"
+
         try
         {
             _keyManager.Decrypt(pathTextBox.Text, path);

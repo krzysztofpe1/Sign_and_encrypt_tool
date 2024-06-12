@@ -32,10 +32,10 @@ public partial class EncryptionView : UserControl
     private void EncryptButton_Click(object sender, RoutedEventArgs e)
     {
         var mbResult = MessageBoxes.YesNoCancel("Do you want to replace the source file with an encrypted file?", "Replace source file");
-        
+
         if (mbResult == MessageBoxResult.Cancel)
             return;
-        
+
         var path = pathTextBox.Text;
 
         if (mbResult == MessageBoxResult.No)
@@ -44,13 +44,12 @@ public partial class EncryptionView : UserControl
             string filter = "Encrypted file .enc|*.enc";
             //Add custom file extension
             var originalExtenstion = Path.GetExtension(pathTextBox.Text);
-            var customExtension = originalExtenstion + ".enc";
             if (!originalExtenstion.IsNullOrEmpty())
-                filter += $"|Encrypted file *{customExtension}|*{customExtension}";
+                filter += $"|Encrypted file *{originalExtenstion}|*{originalExtenstion}";
             sfd.Filter = filter;
             sfd.FilterIndex = 0;
             if (sfd.ShowDialog().Value)
-                path = sfd.FileName;
+                path = sfd.FileName + KeyManager.DEFAULT_ENCRYPTED_FILE_EXTENSION;
             else
             {
                 MessageBoxes.Info("Encryption process was canceled.\nNo changes were made to the source file and the encrypted file was not generated.", "Encryption canceled");
