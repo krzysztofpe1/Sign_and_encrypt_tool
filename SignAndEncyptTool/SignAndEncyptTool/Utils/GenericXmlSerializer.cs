@@ -17,4 +17,14 @@ internal class GenericXmlSerializer<T> where T : class
             }
         }
     }
+
+    public T Deserialize(string xml)
+    {
+        using (var stringReader = new StringReader(xml))
+        {
+            var serializer = new XmlSerializer(typeof(T));
+            return (T)serializer.Deserialize(stringReader);
+        }
+    }
+
 }

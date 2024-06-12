@@ -9,12 +9,13 @@ namespace SignAndEncyptTool.KeysManagement;
 public class KeyManager
 {
 
-    #region Private default file names
+    #region Private defaults
 
     private const string DEFAULT_PRIVATE_KEY_NAME = "privateKey";
     private const string DEFAULT_PUBLIC_KEY_NAME = "pubKey.pub";
     private const Int32 DEFAULT_KEY_SIZE = 2048;
     private const bool FOAEP = false;
+    private const string OID = "SHA256";
 
     #endregion
 
@@ -25,6 +26,12 @@ public class KeyManager
     private byte[] _privateKey = null!;
     private byte[] _publicKey = null!;
     private RSACryptoServiceProvider _rsa = new();
+
+    #endregion
+
+    #region Public defaults
+
+    public const string DEFAULT_SIGNATURE_SUFFIX = "_signature.xml";
 
     #endregion
 
@@ -292,7 +299,7 @@ public class KeyManager
             if (!File.Exists(documentPath))
                 return false;
 
-            var signaturePath = Path.Combine(Path.GetDirectoryName(documentPath), Path.GetFileNameWithoutExtension(documentPath) + ".xml");
+            var signaturePath = GetDefaultSignaturePath(documentPath);
 
             var documentInBytes = await File.ReadAllBytesAsync(documentPath);
 
@@ -305,7 +312,7 @@ public class KeyManager
                 var documentHash = sha256.ComputeHash(documentInBytes);
 
                 // Encrypt the hash with the private key
-                var encryptedHash = rsa.SignHash(documentHash, CryptoConfig.MapNameToOID("SHA256"));
+                var encryptedHash = rsa.SignHash(documentHash, CryptoConfig.MapNameToOID(OID));
 
                 signature = new DigitalSignature()
                 {
@@ -358,7 +365,46 @@ public class KeyManager
         }
     }
 
+    public async Task<bool> VerifySignature(string documentPath, string signaturePath)
+    {
+        try
+        {
+            if (!File.Exists(documentPath) || !File.Exists(signaturePath))
+                return false;
+
+            var documentInBytes = await File.ReadAllBytesAsync(documentPath);
+            var signatureXml = await File.ReadAllTextAsync(signaturePath);
+
+            var serializer = new GenericXmlSerializer<DigitalSignature>();
+            var signature = serializer.Deserialize(signatureXml);
+
+            var rsa = new RSACryptoServiceProvider();
+            rsa.ImportRSAPublicKey(_publicKey, out _);
+
+            using (var sha256 = SHA256.Create())
+            {
+                var documentHash = sha256.ComputeHash(documentInBytes);
+
+                var isVerified = rsa.VerifyHash(documentHash, CryptoConfig.MapNameToOID(OID)!, signature.SignatureValue);
+                return isVerified;
+            }
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     #endregion
+
+    public string GetDefaultSignaturePath(string documentPath)
+    {
+        try
+        {
+            return Path.Combine(Path.GetDirectoryName(documentPath), Path.GetFileNameWithoutExtension(documentPath) + DEFAULT_SIGNATURE_SUFFIX);
+        }
+        catch { return string.Empty; }
+    }
 
     #endregion
 
