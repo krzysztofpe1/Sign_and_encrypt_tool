@@ -11,8 +11,6 @@ public class KeyManager
 
     #region Private defaults
 
-    private const string DEFAULT_PRIVATE_KEY_NAME = "privateKey";
-    private const string DEFAULT_PUBLIC_KEY_NAME = "pubKey.pub";
     private const Int32 DEFAULT_KEY_SIZE = 2048;
     private const bool FOAEP = false;
     private const string OID = "SHA256";
@@ -32,6 +30,8 @@ public class KeyManager
     #region Public defaults
 
     public const string DEFAULT_SIGNATURE_SUFFIX = "_signature.xml";
+    public const string DEFAULT_PRIVATE_KEY_NAME = "privateKey";
+    public const string DEFAULT_PUBLIC_KEY_NAME = "pubKey.pub";
 
     #endregion
 

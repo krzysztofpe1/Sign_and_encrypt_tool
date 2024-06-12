@@ -9,7 +9,8 @@
         Height="250" Width="400"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen"
-        Icon="/Resources/encrypt_icon.png">
+        Icon="/Resources/encrypt_icon.png"
+        Loaded="Window_Loaded">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition/>

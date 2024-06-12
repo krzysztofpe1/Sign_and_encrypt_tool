@@ -1,6 +1,7 @@
 ﻿using Microsoft.Win32;
 using SignAndEncyptTool.KeysManagement;
 using SignAndEncyptTool.Utils;
+using System.IO;
 using System.Windows;
 using WindowsClient.Utils;
 using WindowsClient.Windows;
@@ -16,6 +17,7 @@ public partial class KeysManagementWindow : Window
     /// Change this field value accordingly: true - correctly parsed one of the keys, false - user closed the window
     /// </summary>
     private bool _returnValue = false;
+    private bool _scheduledToDispose = false;
 
     #endregion
 
@@ -36,6 +38,51 @@ public partial class KeysManagementWindow : Window
     {
         base.ShowDialog();
         return _returnValue;
+    }
+
+    #endregion
+
+    #region Private Methods
+
+    private void CheckForDriveWithKeys()
+    {
+        var allDrives = DriveInfo.GetDrives();
+        var listOfPrivateAndPublicKeyTuples = new List<(string, string)>();
+
+        foreach (DriveInfo drive in allDrives)
+        {
+            if (!drive.IsReady)
+                continue;
+
+            string privateKeyFilePath = Path.Combine(drive.RootDirectory.FullName, KeyManager.DEFAULT_PRIVATE_KEY_NAME);
+            string publicKeyFilePath = Path.Combine(drive.RootDirectory.FullName, KeyManager.DEFAULT_PUBLIC_KEY_NAME);
+            var privKeyExists = File.Exists(privateKeyFilePath);
+            var pubKeyExists = File.Exists(publicKeyFilePath);
+
+            if (privKeyExists && pubKeyExists)
+                listOfPrivateAndPublicKeyTuples.Add((privateKeyFilePath, publicKeyFilePath));
+            else if (pubKeyExists)
+                listOfPrivateAndPublicKeyTuples.Add((string.Empty, publicKeyFilePath));
+            else if (privKeyExists)
+                listOfPrivateAndPublicKeyTuples.Add((privateKeyFilePath, string.Empty));
+        }
+
+        if (listOfPrivateAndPublicKeyTuples.Count == 0)
+            return;
+
+        if (listOfPrivateAndPublicKeyTuples.Count > 1)
+        {
+            MessageBoxes.Info("Found multiple devices connected with private key and/or public key installed.\nNo action will be performed, choose keys manually.", "Keys scan result");
+            return;
+        }
+
+        var res = MessageBoxes.YesNoCancel("Private key and/or Public key detected.\nDo you want to import it?", "Keys scan result");
+        
+        if (res == MessageBoxResult.Yes)
+        {
+            privateKeyPathTextBox.Text = listOfPrivateAndPublicKeyTuples[0].Item1;
+            publicKeyPathTextBox.Text = listOfPrivateAndPublicKeyTuples[0].Item2;
+        }
     }
 
     #endregion
@@ -65,7 +112,7 @@ public partial class KeysManagementWindow : Window
         var privKeyPath = privateKeyPathTextBox.Text;
         var pubKeyPath = publicKeyPathTextBox.Text;
 
-        if(privKeyPath.IsNullOrEmpty() && pubKeyPath.IsNullOrEmpty())
+        if (privKeyPath.IsNullOrEmpty() && pubKeyPath.IsNullOrEmpty())
         {
             MessageBoxes.Error("You have to specify at least one key.", "No key was specified");
         }
@@ -161,12 +208,17 @@ public partial class KeysManagementWindow : Window
         var window = new GenerateKeyWindow();
         window.ShowDialog();
         var keyManager = window.KeyManager;
-        if(keyManager != null)
+        if (keyManager != null)
         {
             KeyManager = keyManager;
             privateKeyPathTextBox.Text = keyManager.PrivateKeyPath;
-            publicKeyPathTextBox.Text= keyManager.PublicKeyPath;
+            publicKeyPathTextBox.Text = keyManager.PublicKeyPath;
         }
+    }
+
+    private void Window_Loaded(object sender, RoutedEventArgs e)
+    {
+        CheckForDriveWithKeys();
     }
 
     #endregion
