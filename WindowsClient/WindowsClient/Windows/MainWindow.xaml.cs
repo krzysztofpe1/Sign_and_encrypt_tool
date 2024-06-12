@@ -1,5 +1,4 @@
 ﻿using SignAndEncyptTool.KeysManagement;
-using System.Diagnostics;
 using System.Windows;
 using WindowsClient.Views;
 

@@ -1,5 +1,8 @@
-﻿using SignAndEncyptTool.Utils;
+﻿using SignAndEncyptTool.Signature;
+using SignAndEncyptTool.Utils;
 using System.Security.Cryptography;
+using System.Xml;
+using System.Xml.Serialization;
 
 namespace SignAndEncyptTool.KeysManagement;
 
@@ -275,6 +278,83 @@ public class KeyManager
         catch (Exception ex)
         {
             throw new SAEException("Failed to decrypt file.", ex);
+        }
+    }
+
+    #endregion
+
+    #region Sign/ValidateSign
+
+    public async Task<bool> SignDocument(string documentPath)
+    {
+        try
+        {
+            if (!File.Exists(documentPath))
+                return false;
+
+            var signaturePath = Path.Combine(Path.GetDirectoryName(documentPath), Path.GetFileNameWithoutExtension(documentPath) + ".xml");
+
+            var documentInBytes = await File.ReadAllBytesAsync(documentPath);
+
+            var rsa = new RSACryptoServiceProvider();
+            rsa.ImportRSAPrivateKey(_privateKey, out _);
+
+            DigitalSignature signature;
+            using (var sha256 = SHA256.Create())
+            {
+                var documentHash = sha256.ComputeHash(documentInBytes);
+
+                // Encrypt the hash with the private key
+                var encryptedHash = rsa.SignHash(documentHash, CryptoConfig.MapNameToOID("SHA256"));
+
+                signature = new DigitalSignature()
+                {
+                    SignedInfo = new()
+                    {
+                        CanonicalizationMethod = new()
+                        {
+                            Algorithm = "http://www.w3.org/TR/2000/WD-xml-c14n-20000710"
+                        },
+                    },
+                    SignatureValue = encryptedHash,
+                    Object = new()
+                    {
+                        QualifyingProperties = new()
+                        {
+                            SignedProperties = new()
+                            {
+                                SignedSignatureProperties = new()
+                                {
+                                    SigningTime = DateTime.Now,
+                                },
+                                SigningUserDetails = new()
+                                {
+                                    SigningUsername = Environment.UserName,
+                                    SigningUserPCName = Environment.MachineName,
+                                },
+                                GeneralDocumentInformation = new()
+                                {
+                                    SizeInBytes = documentInBytes.Length,
+                                    Extension = Path.GetExtension(documentPath),
+                                    LastModificationDateAndTime = File.GetLastWriteTime(documentPath),
+                                }
+                            }
+                        }
+                    }
+                };
+            }
+
+            var serializer = new GenericXmlSerializer<DigitalSignature>();
+
+            var serializedSignature = serializer.Serialize(signature);
+
+            await File.WriteAllTextAsync(signaturePath, serializedSignature);
+
+            return true;
+        }
+        catch
+        {
+            return false;
         }
     }
 
