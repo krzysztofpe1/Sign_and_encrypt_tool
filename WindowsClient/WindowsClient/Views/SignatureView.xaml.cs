@@ -46,7 +46,6 @@ public partial class SignatureView : UserControl
             var ofd = new OpenFileDialog();
             ofd.Filter = "All files (*.*)|*.*|XML files (*.xml)|*.xml";
             ofd.FilterIndex = 1;
-            ofd.ShowDialog();
             if (ofd.ShowDialog() == false)
                 return;
             signaturePath = ofd.FileName;
