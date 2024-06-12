@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using SignAndEncyptTool.KeysManagement;
+using SignAndEncyptTool.Utils;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -17,7 +18,7 @@ public partial class SignatureView : UserControl
         _keyManager = keyManager;
     }
 
-    private void BrowseButton_Click(object sender, System.Windows.RoutedEventArgs e)
+    private void BrowseButton_Click(object sender, RoutedEventArgs e)
     {
         var ofd = new OpenFileDialog();
         ofd.Filter = "All files (*.*)|*.*";
@@ -35,7 +36,7 @@ public partial class SignatureView : UserControl
         }
     }
 
-    private async void CheckButton_Click(object sender, System.Windows.RoutedEventArgs e)
+    private async void CheckButton_Click(object sender, RoutedEventArgs e)
     {
         var documentPath = signatureCheckPathTextBox.Text;
         var signaturePath = _keyManager.GetDefaultSignaturePath(documentPath);
@@ -60,12 +61,28 @@ public partial class SignatureView : UserControl
 
     }
 
-    private async void SignButton_Click(object sender, System.Windows.RoutedEventArgs e)
+    private async void SignButton_Click(object sender, RoutedEventArgs e)
     {
         var documentPath = signatureSignPathTextBox.Text;
         if (await _keyManager.SignDocument(documentPath))
             MessageBoxes.Info("Signature created succesfully.", "Signature creation status");
         else
             MessageBoxes.Error("Signature couldn't be created.\nCheck permissions to the folder containing file to be signed.", "Signature creation status");
+    }
+
+    private void UC_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (_keyManager.PrivateKeyPath.IsNullOrEmpty())
+        {
+            signatureSignBrowseButton.IsEnabled = false;
+            signatureSignPathTextBox.IsEnabled = false;
+            signButton.IsEnabled = false;
+        }
+        if (_keyManager.PublicKeyPath.IsNullOrEmpty())
+        {
+            signatureCheckBrowseButton.IsEnabled = false;
+            signatureCheckPathTextBox.IsEnabled = false;
+            checkButton.IsEnabled = false;
+        }
     }
 }

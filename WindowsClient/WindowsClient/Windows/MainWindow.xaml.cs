@@ -1,4 +1,5 @@
 ﻿using SignAndEncyptTool.KeysManagement;
+using SignAndEncyptTool.Utils;
 using System.Windows;
 using WindowsClient.Views;
 
@@ -27,8 +28,15 @@ public partial class MainWindow : Window
         else
         {
             signatureContentControl.Content = new SignatureView(_keyManager);
-            encryptionContentControl.Content = new EncryptionView(_keyManager);
-            decryptionContentControl.Content = new DecryptionView(_keyManager);
+            if (!_keyManager.PublicKeyPath.IsNullOrEmpty())
+                encryptionContentControl.Content = new EncryptionView(_keyManager);
+            else
+                encryptionTab.IsEnabled = false;
+            
+            if (!_keyManager.PrivateKeyPath.IsNullOrEmpty())
+                decryptionContentControl.Content = new DecryptionView(_keyManager);
+            else 
+                decryptionTab.IsEnabled = false;
         }
     }
 }

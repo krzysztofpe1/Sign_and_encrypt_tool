@@ -6,7 +6,8 @@
              xmlns:local="clr-namespace:WindowsClient.Views"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="400"
-             Background="White">
+             Background="White"
+             Loaded="UC_Loaded">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="10"/>

@@ -13,10 +13,10 @@
             <TabItem Header="Signature">
                 <ContentControl x:Name="signatureContentControl"/>
             </TabItem>
-            <TabItem Header="Encryption">
+            <TabItem Header="Encryption" x:Name="encryptionTab">
                 <ContentControl x:Name="encryptionContentControl"/>
             </TabItem>
-            <TabItem Header="Decryption">
+            <TabItem Header="Decryption" x:Name="decryptionTab">
                 <ContentControl x:Name="decryptionContentControl"/>
             </TabItem>
         </TabControl>
