@@ -55,11 +55,11 @@ public partial class DecryptionView : UserControl
         try
         {
             _keyManager.Decrypt(pathTextBox.Text, path);
-            MessageBoxes.Info($"File was successfully encrypted and saved to location: {path}", "Encryption successfull");
+            MessageBoxes.Info($"File was successfully decrypted and saved to location: {path}", "Encryption successfull");
         }
         catch (Exception ex)
         {
-            MessageBoxes.Error($"An exception was thrown while trying to encypt and save the file.\nException thrown:\n{ex.Message}", "Encryption error");
+            MessageBoxes.Error($"An exception was thrown while trying to decypt and save the file.\nException thrown:\n{ex.Message}", "Encryption error");
         }
     }
 }

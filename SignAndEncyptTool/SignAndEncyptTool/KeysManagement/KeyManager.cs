@@ -11,7 +11,7 @@ public class KeyManager
 
     #region Private defaults
 
-    private const Int32 DEFAULT_KEY_SIZE = 2048;
+    private const Int32 DEFAULT_KEY_SIZE = 4096;
     private const bool FOAEP = false;
     private const string OID = "SHA256";
 
@@ -210,7 +210,7 @@ public class KeyManager
         if (passphrase != null && passphrase.Length < 4)
             throw new SAEException("Passphrase was shorter than 4 letters while trying to generate keys.");
 
-        _rsa = new RSACryptoServiceProvider(2048);
+        _rsa = new RSACryptoServiceProvider(DEFAULT_KEY_SIZE);
 
         // Export private key
         byte[] privateKeyBytes = _rsa.ExportRSAPrivateKey();
